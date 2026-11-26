@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { X, CheckCircle, XCircle, Loader2, AlertTriangle } from "lucide-react";
+import React, { useState, useEffect, useCallback } from "react";
+import { X, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { createJiraClient, JiraConfig } from "../../lib/jiraApi";
 
 interface ConnectionTestModalProps {
@@ -19,7 +19,7 @@ export default function ConnectionTestModal({ isOpen, onClose, config }: Connect
   const [isTestingConnection, setIsTestingConnection] = useState(false);
   const [testResults, setTestResults] = useState<TestResult[]>([]);
 
-  const runConnectionTest = async () => {
+  const runConnectionTest = useCallback(async () => {
     setIsTestingConnection(true);
     setTestResults([]);
 
@@ -98,7 +98,13 @@ export default function ConnectionTestModal({ isOpen, onClose, config }: Connect
 
     setTestResults([...results]);
     setIsTestingConnection(false);
-  };
+  }, [config.baseUrl, config.email, config.apiToken]);
+
+  useEffect(() => {
+    if (isOpen && config.baseUrl && config.email && config.apiToken) {
+      runConnectionTest();
+    }
+  }, [isOpen, runConnectionTest, config.baseUrl, config.email, config.apiToken]);
 
   const getStatusIcon = (status: TestResult["status"]) => {
     switch (status) {
@@ -147,50 +153,43 @@ export default function ConnectionTestModal({ isOpen, onClose, config }: Connect
 
         {/* 測試結果 */}
         <div className="p-6">
-          {testResults.length === 0 && !isTestingConnection && (
-            <div className="text-center py-8">
-              <AlertTriangle className="mx-auto text-yellow-500 mb-4" size={48} />
-              <p className="text-gray-600 mb-4">點擊下方按鈕開始測試 Jira 連線</p>
-            </div>
-          )}
-
-          {testResults.length > 0 && (
-            <div className="space-y-4">
-              <h3 className="text-sm font-medium text-gray-700">測試結果</h3>
-              {testResults.map((result, index) => (
-                <div key={index} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                  {getStatusIcon(result.status)}
-                  <div className="flex-1">
-                    <div className="text-sm font-medium text-gray-900">{result.step}</div>
-                    <div className="text-sm text-gray-600 mt-1">{result.message}</div>
-                    {result.details && result.status === "error" && (
-                      <details className="mt-2">
-                        <summary className="text-xs text-gray-500 cursor-pointer">
-                          顯示詳細錯誤
-                        </summary>
-                        <pre className="text-xs text-red-600 mt-1 p-2 bg-red-50 rounded overflow-x-auto">
-                          {typeof result.details === "string"
-                            ? result.details
-                            : JSON.stringify(result.details, null, 2)}
-                        </pre>
-                      </details>
-                    )}
-                  </div>
+          <div className="space-y-4">
+            <h3 className="text-sm font-medium text-gray-700">測試結果</h3>
+            {testResults.map((result, index) => (
+              <div key={index} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                {getStatusIcon(result.status)}
+                <div className="flex-1">
+                  <div className="text-sm font-medium text-gray-900">{result.step}</div>
+                  <div className="text-sm text-gray-600 mt-1">{result.message}</div>
+                  {result.details && result.status === "error" && (
+                    <details className="mt-2">
+                      <summary className="text-xs text-gray-500 cursor-pointer">
+                        顯示詳細錯誤
+                      </summary>
+                      <pre className="text-xs text-red-600 mt-1 p-2 bg-red-50 rounded overflow-x-auto">
+                        {typeof result.details === "string"
+                          ? result.details
+                          : JSON.stringify(result.details, null, 2)}
+                      </pre>
+                    </details>
+                  )}
                 </div>
-              ))}
-            </div>
-          )}
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* 按鈕 */}
         <div className="flex gap-3 p-6 border-t">
           <button
+            type="button"
             onClick={onClose}
             className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
           >
             關閉
           </button>
           <button
+            type="button"
             onClick={runConnectionTest}
             disabled={isTestingConnection}
             className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
@@ -201,7 +200,7 @@ export default function ConnectionTestModal({ isOpen, onClose, config }: Connect
                 測試中...
               </>
             ) : (
-              "開始測試"
+              "重新測試"
             )}
           </button>
         </div>

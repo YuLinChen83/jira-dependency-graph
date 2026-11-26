@@ -20,12 +20,12 @@ export default function JiraConfigModal({
   isOpen,
   onClose,
   onSave,
-  initialConfig = {},
+  initialConfig,
 }: JiraConfigModalProps) {
   const [config, setConfig] = useState<JiraConfig>({
-    baseUrl: initialConfig.baseUrl || "",
-    email: initialConfig.email || "",
-    apiToken: initialConfig.apiToken || "",
+    baseUrl: initialConfig?.baseUrl || "",
+    email: initialConfig?.email || "",
+    apiToken: initialConfig?.apiToken || "",
   });
 
   const [showToken, setShowToken] = useState(false);
@@ -33,22 +33,53 @@ export default function JiraConfigModal({
   const [isTestModalOpen, setIsTestModalOpen] = useState(false);
   const [showTroubleshooting, setShowTroubleshooting] = useState(false);
 
+  // 當彈窗打開時同步初始設定（僅依賴 primitive 屬性，避免在輸入時被重新覆寫）
+  useEffect(() => {
+    if (isOpen) {
+      setConfig({
+        baseUrl: initialConfig?.baseUrl || "",
+        email: initialConfig?.email || "",
+        apiToken: initialConfig?.apiToken || "",
+      });
+      setErrors({});
+    }
+  }, [isOpen, initialConfig?.baseUrl, initialConfig?.email, initialConfig?.apiToken]);
+
+  const getNormalizedConfig = (raw: JiraConfig): JiraConfig => {
+    let baseUrl = raw.baseUrl.trim();
+    if (baseUrl && !baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
+      baseUrl = `https://${baseUrl}`;
+    }
+    baseUrl = baseUrl.replace(/\/+$/, "");
+
+    return {
+      baseUrl,
+      email: raw.email.trim(),
+      apiToken: raw.apiToken.trim(),
+    };
+  };
+
   const validateConfig = (): boolean => {
     const newErrors: Partial<JiraConfig> = {};
+    const norm = getNormalizedConfig(config);
 
-    if (!config.baseUrl.trim()) {
+    if (!norm.baseUrl) {
       newErrors.baseUrl = "請輸入 Jira 網站 URL";
-    } else if (!config.baseUrl.match(/^https?:\/\/.+/)) {
-      newErrors.baseUrl = "請輸入有效的 URL (包含 http:// 或 https://)";
+    } else {
+      try {
+        new URL(norm.baseUrl);
+      } catch {
+        newErrors.baseUrl = "請輸入有效的 URL 格式";
+      }
     }
 
-    if (!config.email.trim()) {
+    if (!norm.email) {
       newErrors.email = "請輸入電子郵件地址";
-    } else if (!config.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+    } else if (!norm.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
       newErrors.email = "請輸入有效的電子郵件地址";
     }
 
-    if (!config.apiToken.trim()) {
+    if (!norm.apiToken) {
       newErrors.apiToken = "請輸入 API Token";
     }
 
@@ -59,7 +90,7 @@ export default function JiraConfigModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateConfig()) {
-      onSave(config);
+      onSave(getNormalizedConfig(config));
       onClose();
     }
   };
@@ -71,15 +102,9 @@ export default function JiraConfigModal({
     }
   };
 
-  useEffect(() => {
-    setConfig({
-      baseUrl: initialConfig.baseUrl || "",
-      email: initialConfig.email || "",
-      apiToken: initialConfig.apiToken || "",
-    });
-  }, [initialConfig]);
-
   if (!isOpen) return null;
+
+  const currentNormalized = getNormalizedConfig(config);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -89,6 +114,7 @@ export default function JiraConfigModal({
           <h2 className="text-xl font-semibold text-gray-900">Jira API 設定</h2>
           <div className="flex items-center gap-2">
             <button
+              type="button"
               onClick={() => setShowTroubleshooting(!showTroubleshooting)}
               className="text-gray-400 hover:text-gray-600 transition-colors"
               title="顯示故障排除指南"
@@ -96,6 +122,7 @@ export default function JiraConfigModal({
               <HelpCircle size={20} />
             </button>
             <button
+              type="button"
               onClick={onClose}
               className="text-gray-400 hover:text-gray-600 transition-colors"
             >
@@ -134,12 +161,12 @@ export default function JiraConfigModal({
         </div>
 
         {/* 表單 */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form noValidate onSubmit={handleSubmit} className="p-6 space-y-4">
           {/* Jira 網站 URL */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Jira 網站 URL *</label>
             <input
-              type="url"
+              type="text"
               value={config.baseUrl}
               onChange={(e) => handleInputChange("baseUrl", e.target.value)}
               placeholder="https://yourcompany.atlassian.net"
@@ -200,7 +227,11 @@ export default function JiraConfigModal({
             </button>
             <button
               type="button"
-              onClick={() => setIsTestModalOpen(true)}
+              onClick={() => {
+                if (validateConfig()) {
+                  setIsTestModalOpen(true);
+                }
+              }}
               disabled={!config.baseUrl || !config.email || !config.apiToken}
               className="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
             >
@@ -209,7 +240,7 @@ export default function JiraConfigModal({
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
             >
               儲存設定
             </button>
@@ -224,7 +255,7 @@ export default function JiraConfigModal({
       <ConnectionTestModal
         isOpen={isTestModalOpen}
         onClose={() => setIsTestModalOpen(false)}
-        config={config}
+        config={currentNormalized}
       />
     </div>
   );
