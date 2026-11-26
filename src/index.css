@@ -1,0 +1,303 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* React Flow 自定義樣式 */
+.react-flow__node-jiraCard {
+  pointer-events: auto;
+}
+
+/* 確保節點不會阻擋邊線 */
+.react-flow__node {
+  pointer-events: none;
+}
+
+.react-flow__node > div {
+  pointer-events: auto;
+}
+
+.react-flow__node-jiraCard:hover {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.react-flow__node-jiraCard.epic {
+  border-color: #8b5cf6;
+  background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+  border-width: 3px;
+}
+
+.react-flow__node-jiraCard.story {
+  border-color: #10b981;
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+}
+
+.react-flow__node-jiraCard.tech {
+  border-color: #3b82f6;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+}
+
+.react-flow__node-jiraCard.bug {
+  border-color: #ef4444;
+  background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
+}
+
+/* 邊線樣式優化 - 確保邊線在節點上方 */
+.react-flow__edge {
+  z-index: 1000 !important;
+  pointer-events: none;
+}
+
+.react-flow__edge.react-flow__edge-straight {
+  z-index: 1010 !important;
+}
+
+.react-flow__edge path {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+  z-index: 1020 !important;
+}
+
+/* 確保箭頭標記顯示在最上層 */
+.react-flow__edge .react-flow__edge-path {
+  z-index: 1030 !important;
+  pointer-events: none;
+}
+
+/* 自定義箭頭標記樣式 */
+.react-flow__edge marker,
+.react-flow__edge marker polygon {
+  z-index: 1050 !important;
+  pointer-events: none;
+}
+
+/* 確保 SVG marker 元素可見 */
+.react-flow__edge defs,
+.react-flow__edge marker {
+  display: block !important;
+  visibility: visible !important;
+  z-index: 1060 !important;
+}
+
+/* 節點層級調整 - 確保節點在邊線下方 */
+.react-flow__node {
+  z-index: 100 !important;
+}
+
+/* 邊線動畫樣式 */
+.react-flow__edge[data-animated="true"] {
+  z-index: 1020 !important;
+}
+
+.react-flow__edge[data-animated="true"] path {
+  stroke-dasharray: 5;
+  animation: dashdraw 0.5s linear infinite;
+}
+
+@keyframes dashdraw {
+  0% {
+    stroke-dashoffset: 10;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* SVG 元素層級 - 邊線在上層 */
+.react-flow__edges {
+  z-index: 1000 !important;
+}
+
+.react-flow__nodes {
+  z-index: 100 !important;
+}
+
+/* 確保邊線和箭頭始終可見 */
+.react-flow__edge,
+.react-flow__edge path,
+.react-flow__edge marker {
+  pointer-events: none !important;
+}
+
+/* 邊線容器層級 */
+.react-flow__renderer {
+  position: relative;
+}
+
+.react-flow__edges svg {
+  z-index: 100;
+  position: relative;
+}
+
+/* 連接點樣式 */
+.react-flow__handle {
+  width: 8px;
+  height: 8px;
+  background: #6b7280;
+  border: 2px solid white;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 200;
+  pointer-events: auto;
+}
+
+.react-flow__node:hover .react-flow__handle {
+  opacity: 1;
+}
+
+.react-flow__handle-top {
+  top: -4px;
+}
+
+.react-flow__handle-bottom {
+  bottom: -4px;
+}
+
+.react-flow__handle-left {
+  left: -4px;
+}
+
+.react-flow__handle-right {
+  right: -4px;
+}
+
+/* 箭頭標記優化 */
+.react-flow__edge .react-flow__edge-path {
+  stroke-width: inherit;
+}
+
+/* 動畫效果 */
+@keyframes dash {
+  to {
+    stroke-dashoffset: -16;
+  }
+}
+
+.react-flow__edge[data-animated="true"] path {
+  animation: dash 1s linear infinite;
+}
+
+/* 小地圖樣式 */
+.react-flow__minimap {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* 控制面板樣式 */
+.react-flow__controls {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.react-flow__controls-button {
+  border: none;
+  background: white;
+  color: #374151;
+  transition: all 0.2s ease;
+}
+
+.react-flow__controls-button:hover {
+  background: #f3f4f6;
+  color: #1f2937;
+}
+
+/* 全屏模式樣式 */
+:fullscreen {
+  background: white !important;
+}
+
+:fullscreen .react-flow__renderer {
+  width: 100vw !important;
+  height: 100vh !important;
+}
+
+:fullscreen .react-flow__controls {
+  z-index: 1000 !important;
+}
+
+:fullscreen .react-flow__minimap {
+  z-index: 1000 !important;
+}
+
+/* 全屏容器樣式 */
+.fullscreen-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  background: white;
+}
+
+/* 自定義控制按鈕樣式 */
+.flow-controls {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  padding: 8px;
+}
+
+.flow-control-button {
+  padding: 8px;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flow-control-button:hover {
+  background: #f3f4f6;
+}
+
+/* 關鍵路徑 (Critical Path) 與瓶頸節點高亮動畫 */
+@keyframes pulse-critical-edge {
+  0%, 100% {
+    stroke: #ef4444;
+    stroke-width: 4px;
+    filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.8));
+  }
+  50% {
+    stroke: #b91c1c;
+    stroke-width: 6px;
+    filter: drop-shadow(0 0 12px rgba(239, 68, 68, 1));
+  }
+}
+
+.animate-critical-edge {
+  animation: pulse-critical-edge 1.5s infinite ease-in-out !important;
+}
+
+@keyframes pulse-bottleneck-card {
+  0%, 100% {
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.6), 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(220, 38, 38, 0.9), 0 10px 15px -3px rgba(239, 68, 68, 0.3);
+  }
+}
+
+.animate-bottleneck-card {
+  animation: pulse-bottleneck-card 2s infinite ease-in-out !important;
+}
