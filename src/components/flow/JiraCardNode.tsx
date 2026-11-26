@@ -101,15 +101,15 @@ export default function JiraCardNode({ data }: JiraCardNodeProps) {
         type="target"
         position={Position.Top}
         id="top-target"
-        className="w-3 h-3 bg-green-600 border-2 border-white"
-        style={{ top: -6, left: "50%", transform: "translateX(-50%)" }}
+        className="w-2 h-2 opacity-0 pointer-events-none"
+        style={{ top: 0, left: "50%", transform: "translateX(-50%)" }}
       />
       <Handle
         type="source"
         position={Position.Top}
         id="top-source"
-        className="w-3 h-3 bg-blue-600 border-2 border-white opacity-0"
-        style={{ top: -6, left: "50%", transform: "translateX(-50%)", zIndex: -1 }}
+        className="w-2 h-2 opacity-0 pointer-events-none"
+        style={{ top: 0, left: "50%", transform: "translateX(-50%)" }}
       />
 
       {/* Bottom Handles (Center) */}
@@ -117,15 +117,15 @@ export default function JiraCardNode({ data }: JiraCardNodeProps) {
         type="target"
         position={Position.Bottom}
         id="bottom-target"
-        className="w-3 h-3 bg-green-600 border-2 border-white opacity-0"
-        style={{ bottom: -6, left: "50%", transform: "translateX(-50%)", zIndex: -1 }}
+        className="w-2 h-2 opacity-0 pointer-events-none"
+        style={{ bottom: 0, left: "50%", transform: "translateX(-50%)" }}
       />
       <Handle
         type="source"
         position={Position.Bottom}
         id="bottom-source"
-        className="w-3 h-3 bg-blue-600 border-2 border-white"
-        style={{ bottom: -6, left: "50%", transform: "translateX(-50%)" }}
+        className="w-2 h-2 opacity-0 pointer-events-none"
+        style={{ bottom: 0, left: "50%", transform: "translateX(-50%)" }}
       />
 
       {/* Left Handles */}
@@ -133,15 +133,15 @@ export default function JiraCardNode({ data }: JiraCardNodeProps) {
         type="target"
         position={Position.Left}
         id="left-target"
-        className="w-3 h-3 bg-green-600 border-2 border-white"
-        style={{ left: -6, top: "50%", transform: "translateY(-50%)" }}
+        className="w-2 h-2 opacity-0 pointer-events-none"
+        style={{ left: 0, top: "50%", transform: "translateY(-50%)" }}
       />
       <Handle
         type="source"
         position={Position.Left}
         id="left-source"
-        className="w-3 h-3 bg-blue-600 border-2 border-white opacity-0"
-        style={{ left: -6, top: "50%", transform: "translateY(-50%)", zIndex: -1 }}
+        className="w-2 h-2 opacity-0 pointer-events-none"
+        style={{ left: 0, top: "50%", transform: "translateY(-50%)" }}
       />
 
       {/* Right Handles */}
@@ -149,15 +149,15 @@ export default function JiraCardNode({ data }: JiraCardNodeProps) {
         type="target"
         position={Position.Right}
         id="right-target"
-        className="w-3 h-3 bg-green-600 border-2 border-white opacity-0"
-        style={{ right: -6, top: "50%", transform: "translateY(-50%)", zIndex: -1 }}
+        className="w-2 h-2 opacity-0 pointer-events-none"
+        style={{ right: 0, top: "50%", transform: "translateY(-50%)" }}
       />
       <Handle
         type="source"
         position={Position.Right}
         id="right-source"
-        className="w-3 h-3 bg-blue-600 border-2 border-white"
-        style={{ right: -6, top: "50%", transform: "translateY(-50%)" }}
+        className="w-2 h-2 opacity-0 pointer-events-none"
+        style={{ right: 0, top: "50%", transform: "translateY(-50%)" }}
       />
 
       {/* 卡片標題 */}

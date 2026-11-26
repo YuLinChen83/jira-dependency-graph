@@ -129,14 +129,6 @@ export default function JiraConfigModal({
                 <p className="font-medium">✅ CORS 問題已解決</p>
                 <p>此應用程式使用邊緣無伺服器代理（Edge Proxy）來避免瀏覽器的 CORS 限制，你可以安全使用 Jira API。</p>
               </div>
-
-              <div className="mt-3 p-2 bg-indigo-100 border border-indigo-200 rounded text-xs text-indigo-900">
-                <p className="font-medium">💡 無 Jira 帳號？</p>
-                <p>
-                  你可以直接關閉此視窗，並點擊主畫面右上角的「🧪 Demo
-                  模擬資料」按鈕，即可立即免帳號體驗完整功能！
-                </p>
-              </div>
             </div>
           </div>
         </div>

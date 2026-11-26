@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useMemo } from "react";
-import { JiraCard, JiraRelation, EpicSearchResult } from "./types/jira";
-import { searchEpicWithJiraApi, createJiraClient, getDemoEpicData, JiraConfig } from "./lib/jiraApi";
+import { JiraCard, EpicSearchResult } from "./types/jira";
+import { searchEpicWithJiraApi, createJiraClient, JiraConfig } from "./lib/jiraApi";
 import { calculateCriticalPath } from "./lib/criticalPath";
 import SearchBar from "./components/ui/SearchBar";
 import LoadingSpinner from "./components/ui/LoadingSpinner";
@@ -21,7 +21,6 @@ export default function App() {
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [isCriticalPathActive, setIsCriticalPathActive] = useState(false);
-  const [isDemoMode, setIsDemoMode] = useState(false);
   const [filters, setFilters] = useState<FilterOptions>({
     showEpic: true,
     showStory: true,
@@ -44,111 +43,6 @@ export default function App() {
       searchResult.relations
     );
   }, [searchResult, isCriticalPathActive]);
-
-  const handleLoadDemo = useCallback(() => {
-    setIsDemoMode(true);
-    setError(null);
-    const demoData = getDemoEpicData();
-    setSearchResult(demoData);
-    setSelectedCard(null);
-  }, []);
-
-  const handleCreateLink = useCallback(
-    async (
-      sourceCard: JiraCard,
-      targetCard: JiraCard,
-      relationType: "blocks" | "is-blocked-by" | "relates"
-    ) => {
-      if (isDemoMode || !jiraConfig || !isConnected) {
-        const newRelation: JiraRelation = {
-          id: `demo-rel-${Date.now()}`,
-          fromCardId: sourceCard.id,
-          toCardId: targetCard.id,
-          relationType: relationType,
-          description: `${relationType}: ${targetCard.summary}`,
-        };
-        setSearchResult((prev) => {
-          if (!prev) return null;
-          return {
-            ...prev,
-            relations: [...prev.relations, newRelation],
-          };
-        });
-        return;
-      }
-
-      const client = createJiraClient(jiraConfig.baseUrl, jiraConfig.email, jiraConfig.apiToken);
-      let inwardKey = targetCard.key;
-      let outwardKey = sourceCard.key;
-      let linkTypeName = "Blocks";
-
-      if (relationType === "is-blocked-by") {
-        inwardKey = sourceCard.key;
-        outwardKey = targetCard.key;
-        linkTypeName = "Blocks";
-      } else if (relationType === "relates") {
-        linkTypeName = "Relates";
-      }
-
-      const result = await client.createIssueLink(inwardKey, outwardKey, linkTypeName);
-      if (!result.success) {
-        throw new Error(result.error || "建立 Jira 關聯失敗");
-      }
-
-      const newRelation: JiraRelation = {
-        id: `api-rel-${Date.now()}`,
-        fromCardId: sourceCard.id,
-        toCardId: targetCard.id,
-        relationType: relationType,
-        description: `${relationType}: ${targetCard.summary}`,
-      };
-      setSearchResult((prev) => {
-        if (!prev) return null;
-        return {
-          ...prev,
-          relations: [...prev.relations, newRelation],
-        };
-      });
-    },
-    [isDemoMode, jiraConfig, isConnected]
-  );
-
-  const handleDeleteLink = useCallback(
-    async (relationId: string) => {
-      if (
-        isDemoMode ||
-        !jiraConfig ||
-        !isConnected ||
-        relationId.startsWith("demo-rel-") ||
-        relationId.startsWith("api-rel-")
-      ) {
-        setSearchResult((prev) => {
-          if (!prev) return null;
-          return {
-            ...prev,
-            relations: prev.relations.filter((rel) => rel.id !== relationId),
-          };
-        });
-        return;
-      }
-
-      const cleanLinkId = relationId.replace(/-(outward|inward)$/, "");
-      const client = createJiraClient(jiraConfig.baseUrl, jiraConfig.email, jiraConfig.apiToken);
-      const result = await client.deleteIssueLink(cleanLinkId);
-      if (!result.success) {
-        throw new Error(result.error || "刪除 Jira 關聯失敗");
-      }
-
-      setSearchResult((prev) => {
-        if (!prev) return null;
-        return {
-          ...prev,
-          relations: prev.relations.filter((rel) => rel.id !== relationId),
-        };
-      });
-    },
-    [isDemoMode, jiraConfig, isConnected]
-  );
 
   const testJiraConnection = useCallback(async (config: JiraConfig) => {
     if (!config.baseUrl || !config.email || !config.apiToken) {
@@ -198,14 +92,8 @@ export default function App() {
       setSelectedCard(null);
 
       try {
-        if (isDemoMode) {
-          const result = getDemoEpicData();
-          setSearchResult(result);
-          return;
-        }
-
         if (!jiraConfig || !jiraConfig.baseUrl || !jiraConfig.email || !jiraConfig.apiToken) {
-          setError("請先設定 Jira API 連線 (點擊右上角齒輪設定)，或切換至 Demo 模式試用");
+          setError("請先設定 Jira API 連線 (點擊右上角齒輪設定)");
           return;
         }
 
@@ -225,7 +113,7 @@ export default function App() {
         setIsLoading(false);
       }
     },
-    [jiraConfig, isDemoMode]
+    [jiraConfig]
   );
 
   const handleCardClick = useCallback((card: JiraCard) => {
@@ -238,7 +126,6 @@ export default function App() {
 
   const handleConfigSave = useCallback(
     async (config: JiraConfig) => {
-      setIsDemoMode(false);
       setSearchResult(null);
       setJiraConfig(config);
       localStorage.setItem("jiraConfig", JSON.stringify(config));
@@ -392,18 +279,6 @@ export default function App() {
               </h1>
             </div>
             <div className="flex items-center gap-3 sm:gap-4">
-              {/* Demo 模擬資料按鈕 */}
-              <button
-                onClick={handleLoadDemo}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
-                  isDemoMode
-                    ? "bg-indigo-100 border-indigo-400 text-indigo-800"
-                    : "bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100"
-                }`}
-              >
-                <span>🧪 Demo 模擬資料</span>
-              </button>
-
               {/* 關鍵路徑 & 瓶頸按鈕 */}
               {searchResult && (
                 <button
@@ -442,11 +317,7 @@ export default function App() {
               {/* API 狀態指示器 */}
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2">
-                  {isDemoMode ? (
-                    <span className="flex items-center gap-1 bg-yellow-100 border border-yellow-300 text-yellow-800 text-xs px-2 py-1 rounded font-medium">
-                      🧪 Demo 模式
-                    </span>
-                  ) : isConnected ? (
+                  {isConnected ? (
                     <>
                       <Wifi className="text-green-600" size={18} />
                       <span className="text-xs text-gray-600">已連線</span>
@@ -480,7 +351,7 @@ export default function App() {
               <SearchBar
                 onSearch={handleSearch}
                 isLoading={isLoading}
-                placeholder="輸入 Epic 卡號 (例如: PROJ-101 或 DEMO-101)"
+                placeholder="輸入 Epic 卡號 (例如: PROJ-101)"
               />
             </div>
 
@@ -521,17 +392,6 @@ export default function App() {
               ) : error ? (
                 <div className="flex flex-col items-center justify-center h-full gap-4 p-6">
                   <ErrorMessage message={error} onRetry={handleRetry} />
-                  <div className="p-4 bg-indigo-50 border border-indigo-200 rounded-lg text-center max-w-md shadow-sm">
-                    <p className="text-sm text-indigo-800 mb-3 font-medium">
-                      無 Jira 帳號？切換至 Demo 模擬模式試用
-                    </p>
-                    <button
-                      onClick={handleLoadDemo}
-                      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
-                    >
-                      🧪 切換至 Demo 模擬模式
-                    </button>
-                  </div>
                 </div>
               ) : searchResult ? (
                 <JiraFlowChart
@@ -542,8 +402,6 @@ export default function App() {
                   onCardClick={handleCardClick}
                   isCriticalPathActive={isCriticalPathActive}
                   criticalPathResult={criticalPathResult}
-                  onCreateLink={handleCreateLink}
-                  onDeleteLink={handleDeleteLink}
                 />
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500">
@@ -566,20 +424,9 @@ export default function App() {
                     <h3 className="text-lg font-medium text-gray-900 mb-2">
                       開始探索 Jira 卡片關聯圖
                     </h3>
-                    <p className="text-gray-600 mb-6 text-sm">
-                      輸入 Epic 卡號來查看卡片之間的依賴、阻塞與關聯結構
+                    <p className="text-gray-600 text-sm">
+                      請先點擊右上角「齒輪」設定 Jira API 連線，並在上方輸入 Epic 卡號進行查詢
                     </p>
-                    <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-lg shadow-sm">
-                      <p className="text-xs text-indigo-800 mb-3 font-medium">
-                        立即體驗互動拖曳連線與關鍵路徑分析
-                      </p>
-                      <button
-                        onClick={handleLoadDemo}
-                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
-                      >
-                        🧪 載入 Demo 模擬資料
-                      </button>
-                    </div>
                   </div>
                 </div>
               )}

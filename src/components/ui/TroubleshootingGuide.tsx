@@ -93,13 +93,6 @@ export default function TroubleshootingGuide() {
               </ul>
             </div>
           </div>
-
-          <div className="mt-4 p-3 bg-yellow-100 rounded border">
-            <p className="text-sm text-yellow-800">
-              <strong>提示：</strong>
-              如果暫無 Jira 帳號或連線失敗，可點擊右上角「🧪 Demo 模擬資料」按鈕快速體驗關聯圖、關鍵路徑分析與拖曳連線等全部功能。
-            </p>
-          </div>
         </div>
       </div>
     </div>

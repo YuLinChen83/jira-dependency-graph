@@ -10,7 +10,7 @@ interface SearchBarProps {
 export default function SearchBar({
   onSearch,
   isLoading = false,
-  placeholder = "輸入 Epic 卡號 (例如: PROJ-101 或 DEMO-101)",
+  placeholder = "輸入 Epic 卡號 (例如: PROJ-101)",
 }: SearchBarProps) {
   const [searchValue, setSearchValue] = useState("");
 

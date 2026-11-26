@@ -1,8 +1,5 @@
 import React, { useCallback, useRef, useState } from "react";
 import ReactFlow, {
-  Edge,
-  addEdge,
-  Connection,
   useNodesState,
   useEdgesState,
   Controls,
@@ -19,7 +16,6 @@ import CustomBezierEdge from "./CustomBezierEdge";
 import { FlowControls } from "../ui/FullscreenButton";
 import { JiraCard, JiraRelation } from "../../types/jira";
 import { calculateElkLayout } from "../../lib/elkLayoutAlgorithm";
-import CreateLinkModal from "../ui/CreateLinkModal";
 
 const nodeTypes = {
   jiraCard: JiraCardNode,
@@ -41,12 +37,6 @@ export interface JiraFlowChartProps {
     criticalRelationIds: Set<string>;
     bottleneckCardIds: Set<string>;
   } | null;
-  onCreateLink?: (
-    sourceCard: JiraCard,
-    targetCard: JiraCard,
-    relationType: "blocks" | "is-blocked-by" | "relates"
-  ) => Promise<void>;
-  onDeleteLink?: (relationId: string) => Promise<void>;
 }
 
 export default function JiraFlowChart({
@@ -57,8 +47,6 @@ export default function JiraFlowChart({
   filteredRelations,
   isCriticalPathActive = false,
   criticalPathResult = null,
-  onCreateLink,
-  onDeleteLink,
 }: JiraFlowChartProps) {
   const [isClient, setIsClient] = React.useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -79,70 +67,6 @@ export default function JiraFlowChart({
 
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalSourceCard, setModalSourceCard] = useState<JiraCard | null>(null);
-  const [modalTargetCard, setModalTargetCard] = useState<JiraCard | null>(null);
-  const [isModalLoading, setIsModalLoading] = useState(false);
-  const [modalError, setModalError] = useState<string | null>(null);
-
-  const onConnect = useCallback(
-    async (params: Connection) => {
-      if (!onCreateLink) {
-        setEdges((eds) => addEdge(params, eds));
-        return;
-      }
-
-      const sourceId = params.source;
-      const targetId = params.target;
-      if (!sourceId || !targetId) return;
-
-      const sourceCard = cards.find((c) => c.id === sourceId);
-      const targetCard = cards.find((c) => c.id === targetId);
-      if (!sourceCard || !targetCard) return;
-
-      setModalSourceCard(sourceCard);
-      setModalTargetCard(targetCard);
-      setModalError(null);
-      setIsModalOpen(true);
-    },
-    [onCreateLink, cards, setEdges]
-  );
-
-  const handleConfirmCreateLink = async (relationType: "blocks" | "is-blocked-by" | "relates") => {
-    if (!onCreateLink || !modalSourceCard || !modalTargetCard) return;
-    setIsModalLoading(true);
-    setModalError(null);
-    try {
-      await onCreateLink(modalSourceCard, modalTargetCard, relationType);
-      setIsModalOpen(false);
-    } catch (err: any) {
-      setModalError(err.message || "建立關聯失敗");
-    } finally {
-      setIsModalLoading(false);
-    }
-  };
-
-  const handleEdgeClick = useCallback(
-    async (_event: React.MouseEvent, edge: Edge) => {
-      if (!onDeleteLink) return;
-
-      const relation = edge.data?.relation;
-      if (!relation) return;
-
-      const confirmDelete = window.confirm(
-        `確定要刪除此 Issue Link 關聯？\n來源：${edge.source} -> 目標：${edge.target} (${relation.relationType})`
-      );
-      if (confirmDelete) {
-        try {
-          await onDeleteLink(relation.id);
-        } catch (err: any) {
-          alert(`刪除關聯失敗: ${err.message || err}`);
-        }
-      }
-    },
-    [onDeleteLink]
-  );
 
   const handleFullscreen = useCallback(async () => {
     if (!flowRef.current) return;
@@ -283,20 +207,9 @@ export default function JiraFlowChart({
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        onEdgeClick={handleEdgeClick}
         nodeTypes={nodeTypes}
         isFullscreen={isFullscreen}
         onFullscreen={handleFullscreen}
-      />
-      <CreateLinkModal
-        isOpen={isModalOpen}
-        sourceCard={modalSourceCard}
-        targetCard={modalTargetCard}
-        isLoading={isModalLoading}
-        error={modalError}
-        onConfirm={handleConfirmCreateLink}
-        onClose={() => setIsModalOpen(false)}
       />
     </div>
   );
@@ -307,8 +220,6 @@ function ReactFlowWithControls({
   edges,
   onNodesChange,
   onEdgesChange,
-  onConnect,
-  onEdgeClick,
   nodeTypes,
   isFullscreen,
   onFullscreen,
@@ -317,8 +228,6 @@ function ReactFlowWithControls({
   edges: any[];
   onNodesChange: any;
   onEdgesChange: any;
-  onConnect: any;
-  onEdgeClick?: any;
   nodeTypes: any;
   isFullscreen: boolean;
   onFullscreen: () => void;
@@ -332,8 +241,8 @@ function ReactFlowWithControls({
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        onEdgeClick={onEdgeClick}
+        nodesConnectable={false}
+        elementsSelectable={true}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         fitView
