@@ -8,8 +8,11 @@ import ReactFlow, {
   BackgroundVariant,
   MarkerType,
   useReactFlow,
+  getNodesBounds,
+  getViewportForBounds,
 } from "reactflow";
 import "reactflow/dist/style.css";
+import { toPng } from "html-to-image";
 
 import JiraCardNode from "./JiraCardNode";
 import CustomBezierEdge from "./CustomBezierEdge";
@@ -37,6 +40,9 @@ export interface JiraFlowChartProps {
     criticalRelationIds: Set<string>;
     bottleneckCardIds: Set<string>;
   } | null;
+  epicKey?: string;
+  isZenMode?: boolean;
+  onToggleZenMode?: () => void;
 }
 
 export default function JiraFlowChart({
@@ -47,6 +53,9 @@ export default function JiraFlowChart({
   filteredRelations,
   isCriticalPathActive = false,
   criticalPathResult = null,
+  epicKey,
+  isZenMode,
+  onToggleZenMode,
 }: JiraFlowChartProps) {
   const [isClient, setIsClient] = React.useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -210,6 +219,9 @@ export default function JiraFlowChart({
         nodeTypes={nodeTypes}
         isFullscreen={isFullscreen}
         onFullscreen={handleFullscreen}
+        epicKey={epicKey}
+        isZenMode={isZenMode}
+        onToggleZenMode={onToggleZenMode}
       />
     </div>
   );
@@ -223,6 +235,9 @@ function ReactFlowWithControls({
   nodeTypes,
   isFullscreen,
   onFullscreen,
+  epicKey,
+  isZenMode,
+  onToggleZenMode,
 }: {
   nodes: any[];
   edges: any[];
@@ -231,8 +246,60 @@ function ReactFlowWithControls({
   nodeTypes: any;
   isFullscreen: boolean;
   onFullscreen: () => void;
+  epicKey?: string;
+  isZenMode?: boolean;
+  onToggleZenMode?: () => void;
 }) {
-  const { zoomIn, zoomOut, fitView } = useReactFlow();
+  const { zoomIn, zoomOut, fitView, getNodes } = useReactFlow();
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExportPng = useCallback(async () => {
+    const currentNodes = getNodes();
+    if (!currentNodes || currentNodes.length === 0) return;
+
+    setIsExporting(true);
+    try {
+      const nodesBounds = getNodesBounds(currentNodes);
+      const padding = 60;
+      const imageWidth = Math.max(800, Math.round(nodesBounds.width + padding * 2));
+      const imageHeight = Math.max(600, Math.round(nodesBounds.height + padding * 2));
+
+      const viewport = document.querySelector(".react-flow__viewport") as HTMLElement;
+      if (!viewport) {
+        throw new Error("找不到畫布 Viewport 節點");
+      }
+
+      const transform = getViewportForBounds(
+        nodesBounds,
+        imageWidth,
+        imageHeight,
+        0.1,
+        2,
+        0.1
+      );
+
+      const dataUrl = await toPng(viewport, {
+        backgroundColor: "#ffffff",
+        width: imageWidth,
+        height: imageHeight,
+        style: {
+          width: `${imageWidth}px`,
+          height: `${imageHeight}px`,
+          transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.zoom})`,
+        },
+        pixelRatio: 2,
+      });
+
+      const downloadLink = document.createElement("a");
+      downloadLink.download = `Jira-Dependency-${epicKey || "graph"}.png`;
+      downloadLink.href = dataUrl;
+      downloadLink.click();
+    } catch (error) {
+      console.error("匯出圖檔失敗:", error);
+    } finally {
+      setIsExporting(false);
+    }
+  }, [getNodes, epicKey]);
 
   return (
     <>
@@ -287,6 +354,10 @@ function ReactFlowWithControls({
         onFitView={() => fitView({ padding: 0.05 })}
         onFullscreen={onFullscreen}
         isFullscreen={isFullscreen}
+        onExportPng={handleExportPng}
+        isExporting={isExporting}
+        onToggleZenMode={onToggleZenMode}
+        isZenMode={isZenMode}
       />
     </>
   );

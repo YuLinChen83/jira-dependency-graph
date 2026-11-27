@@ -9,7 +9,7 @@ import JiraConfigModal from "./components/ui/JiraConfigModal";
 import CardFilter, { FilterOptions } from "./components/ui/CardFilter";
 import JiraFlowChart from "./components/flow/JiraFlowChart";
 import FlowProvider from "./components/flow/ReactFlowProvider";
-import { ExternalLink, Info, Settings, Wifi, WifiOff, Filter, Github } from "lucide-react";
+import { ExternalLink, Info, Settings, Wifi, WifiOff, Filter, Github, Minimize2 } from "lucide-react";
 
 export default function App() {
   const [searchResult, setSearchResult] = useState<EpicSearchResult | null>(null);
@@ -21,6 +21,18 @@ export default function App() {
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [isCriticalPathActive, setIsCriticalPathActive] = useState(false);
+  const [isZenMode, setIsZenMode] = useState(false);
+
+  // 監聽 ESC 鍵退出專注模式
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isZenMode) {
+        setIsZenMode(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isZenMode]);
   const [filters, setFilters] = useState<FilterOptions>({
     showEpic: true,
     showStory: true,
@@ -279,8 +291,31 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* 專注模式頂部浮動還原條 */}
+      {isZenMode && (
+        <div className="fixed top-3 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+          <button
+            onClick={() => setIsZenMode(false)}
+            className="flex items-center gap-2 px-3.5 py-1.5 bg-gray-900/90 hover:bg-gray-900 text-white text-xs font-medium rounded-full shadow-lg backdrop-blur transition-all border border-gray-700 hover:scale-105"
+            title="還原正常檢視 (或按鍵盤 ESC)"
+          >
+            <Minimize2 size={13} />
+            <span>退出專注模式</span>
+            <kbd className="px-1.5 py-0.5 bg-gray-800 text-gray-300 rounded text-[10px] font-mono border border-gray-600">
+              ESC
+            </kbd>
+          </button>
+        </div>
+      )}
+
       {/* 標題列 */}
-      <header className="bg-white shadow-sm border-b">
+      <header
+        className={`bg-white shadow-sm border-b transition-all duration-300 ease-in-out ${
+          isZenMode
+            ? "max-h-0 opacity-0 overflow-hidden pointer-events-none -translate-y-full py-0 border-none"
+            : "max-h-32 opacity-100 translate-y-0"
+        }`}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
@@ -370,7 +405,13 @@ export default function App() {
       </header>
 
       {/* 搜尋區域 */}
-      <div className="bg-white border-b py-4">
+      <div
+        className={`bg-white border-b transition-all duration-300 ease-in-out ${
+          isZenMode
+            ? "max-h-0 opacity-0 overflow-hidden pointer-events-none -translate-y-full py-0 border-none"
+            : "max-h-40 opacity-100 translate-y-0 py-4"
+        }`}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center space-y-2 relative">
             <div className="w-full max-w-xl">
@@ -406,8 +447,16 @@ export default function App() {
       </div>
 
       {/* 主要內容區域 */}
-      <main className="flex-1 w-full p-4 overflow-hidden">
-        <div className="flex gap-4 h-[calc(100vh-190px)]">
+      <main
+        className={`flex-1 w-full overflow-hidden transition-all duration-300 ${
+          isZenMode ? "p-2" : "p-4"
+        }`}
+      >
+        <div
+          className={`flex gap-4 transition-all duration-300 ${
+            isZenMode ? "h-[calc(100vh-1rem)]" : "h-[calc(100vh-190px)]"
+          }`}
+        >
           {/* 流程圖畫布 */}
           <div className="flex-1 h-full bg-white rounded-xl shadow-sm border relative overflow-hidden">
             <FlowProvider>
@@ -428,6 +477,9 @@ export default function App() {
                   onCardClick={handleCardClick}
                   isCriticalPathActive={isCriticalPathActive}
                   criticalPathResult={criticalPathResult}
+                  epicKey={searchResult.epic.key}
+                  isZenMode={isZenMode}
+                  onToggleZenMode={() => setIsZenMode((prev) => !prev)}
                 />
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500">
