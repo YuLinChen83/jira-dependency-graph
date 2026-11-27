@@ -2,12 +2,15 @@
 
 > 一款專為敏捷軟體研發團隊設計的現代化 Jira 卡片拓撲依賴分析與關鍵路徑（Critical Path）視覺化工具。
 
+[![GitHub Stars](https://img.shields.io/github/stars/YuLinChen83/jira-dependency-graph?style=social)](https://github.com/YuLinChen83/jira-dependency-graph)
+[![GitHub Forks](https://img.shields.io/github/forks/YuLinChen83/jira-dependency-graph?style=social)](https://github.com/YuLinChen83/jira-dependency-graph)
+[![GitHub Issues](https://img.shields.io/github/issues/YuLinChen83/jira-dependency-graph)](https://github.com/YuLinChen83/jira-dependency-graph/issues)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![React](https://img.shields.io/badge/React-18.3-61DAFB?logo=react&logoColor=black)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-5.4-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
 [![Cloudflare](https://img.shields.io/badge/Cloudflare-Workers_%26_Static_Assets-F38020?logo=cloudflare&logoColor=white)](https://workers.cloudflare.com/)
 [![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-3.4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ---
 
@@ -139,6 +142,18 @@ pnpm build
 | **樣式設計** | Tailwind CSS, Lucide React | 原子化響應式 UI 與精緻圖標庫 |
 | **建置工具** | Vite 5 | 極速 HMR 與生產環境最佳化打包 |
 | **雲端部署** | Cloudflare Workers / Static Assets | 邊緣靜態託管與無狀態 CORS 代理 |
+
+---
+
+## ⭐ 支持與社群反饋 (Show your support)
+
+如果這個工具幫助您或您的團隊理清了複雜的 Jira 依賴、加速了專案交付，歡迎：
+- 🌟 在 [GitHub 儲存庫](https://github.com/YuLinChen83/jira-dependency-graph) 右上角給予一顆 **Star**，這是開源維護的最大動力！
+- 🐛 遇到問題或有新功能想法？歡迎提交 [Issue](https://github.com/YuLinChen83/jira-dependency-graph/issues) 或 [Pull Request](https://github.com/YuLinChen83/jira-dependency-graph/pulls)。
+- 📢 分享給身邊經常為 Jira 依賴關係苦惱的工程師、Tech Lead 或專案經理（PM/TPM）。
+
+[![GitHub Stars](https://img.shields.io/github/stars/YuLinChen83/jira-dependency-graph?style=social)](https://github.com/YuLinChen83/jira-dependency-graph)
+[![Tweet](https://img.shields.io/twitter/url?url=https%3A%2F%2Fgithub.com%2FYuLinChen83%2Fjira-dependency-graph&text=推薦一個開源的%20Jira%20卡片關聯與關鍵路徑可視化工具！)](https://twitter.com/intent/tweet?url=https://github.com/YuLinChen83/jira-dependency-graph&text=推薦一個開源的%20Jira%20卡片關聯與關鍵路徑可視化工具！)
 
 ---
 

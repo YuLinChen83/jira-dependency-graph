@@ -9,7 +9,7 @@ import JiraConfigModal from "./components/ui/JiraConfigModal";
 import CardFilter, { FilterOptions } from "./components/ui/CardFilter";
 import JiraFlowChart from "./components/flow/JiraFlowChart";
 import FlowProvider from "./components/flow/ReactFlowProvider";
-import { ExternalLink, Info, Settings, Wifi, WifiOff, Filter } from "lucide-react";
+import { ExternalLink, Info, Settings, Wifi, WifiOff, Filter, Github } from "lucide-react";
 
 export default function App() {
   const [searchResult, setSearchResult] = useState<EpicSearchResult | null>(null);
@@ -323,6 +323,19 @@ export default function App() {
                   </span>
                 </button>
               )}
+
+              {/* GitHub Star 導流按鈕 */}
+              <a
+                href="https://github.com/YuLinChen83/jira-dependency-graph"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-all hover:border-gray-300 shadow-sm"
+                title="在 GitHub 給予 Star 支持"
+              >
+                <Github size={14} className="text-gray-900" />
+                <span className="hidden sm:inline">Star</span>
+                <span className="text-[11px] text-amber-500 font-bold">★</span>
+              </a>
 
               {/* API 狀態指示與引導設定按鈕 */}
               {isConnected ? (
