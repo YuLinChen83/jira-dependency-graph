@@ -93,7 +93,8 @@ export default function App() {
 
       try {
         if (!jiraConfig || !jiraConfig.baseUrl || !jiraConfig.email || !jiraConfig.apiToken) {
-          setError("請先設定 Jira API 連線 (點擊右上角齒輪設定)");
+          setError("請先設定 Jira API 連線");
+          setIsConfigModalOpen(true);
           return;
         }
 
@@ -121,6 +122,15 @@ export default function App() {
   }, []);
 
   const handleRetry = useCallback(() => {
+    setError(null);
+  }, []);
+
+  const handleConfigClear = useCallback(() => {
+    localStorage.removeItem("jiraConfig");
+    setJiraConfig(null);
+    setIsConnected(false);
+    setSearchResult(null);
+    setSelectedCard(null);
     setError(null);
   }, []);
 
@@ -314,30 +324,35 @@ export default function App() {
                 </button>
               )}
 
-              {/* API 狀態指示器 */}
-              <div className="flex items-center gap-3">
+              {/* API 狀態指示與引導設定按鈕 */}
+              {isConnected ? (
                 <div className="flex items-center gap-2">
-                  {isConnected ? (
-                    <>
-                      <Wifi className="text-green-600" size={18} />
-                      <span className="text-xs text-gray-600">已連線</span>
-                    </>
-                  ) : (
-                    <>
-                      <WifiOff className="text-gray-400" size={18} />
-                      <span className="text-xs text-gray-500">未連線</span>
-                    </>
-                  )}
+                  <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-green-50 border border-green-200 rounded-lg text-xs text-green-700 font-medium">
+                    <Wifi size={14} className="text-green-600" />
+                    <span>Jira 已連線</span>
+                  </div>
+                  <button
+                    onClick={() => setIsConfigModalOpen(true)}
+                    className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                    title="Jira API 設定"
+                  >
+                    <Settings size={18} />
+                  </button>
                 </div>
-
+              ) : (
                 <button
                   onClick={() => setIsConfigModalOpen(true)}
-                  className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                  title="Jira API 設定"
+                  className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 border border-amber-300 text-amber-900 rounded-lg text-xs font-semibold hover:bg-amber-100 hover:border-amber-400 shadow-sm transition-all group"
+                  title="點擊設定 Jira API 連線"
                 >
-                  <Settings size={20} />
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                  </span>
+                  <Settings size={14} className="text-amber-700 group-hover:rotate-45 transition-transform" />
+                  <span>點此設定 Jira 連線</span>
                 </button>
-              </div>
+              )}
             </div>
           </div>
         </div>
@@ -425,8 +440,19 @@ export default function App() {
                       開始探索 Jira 卡片關聯圖
                     </h3>
                     <p className="text-gray-600 text-sm">
-                      請先點擊右上角「齒輪」設定 Jira API 連線，並在上方輸入 Epic 卡號進行查詢
+                      {isConnected
+                        ? "請在上方搜尋框輸入 Epic 卡號（例如 PROJ-101）進行查詢"
+                        : "初次使用請先完成 Jira API 連線設定，即可開始探索關聯拓撲與關鍵路徑"}
                     </p>
+                    {!isConnected && (
+                      <button
+                        onClick={() => setIsConfigModalOpen(true)}
+                        className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+                      >
+                        <Settings size={16} />
+                        立即設定 Jira 連線
+                      </button>
+                    )}
                   </div>
                 </div>
               )}
@@ -517,6 +543,7 @@ export default function App() {
         isOpen={isConfigModalOpen}
         onClose={() => setIsConfigModalOpen(false)}
         onSave={handleConfigSave}
+        onClear={handleConfigClear}
         initialConfig={jiraConfig || undefined}
       />
 

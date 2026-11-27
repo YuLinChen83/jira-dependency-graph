@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { X, Eye, EyeOff, ExternalLink, AlertCircle, TestTube, HelpCircle } from "lucide-react";
+import {
+  X,
+  Eye,
+  EyeOff,
+  ExternalLink,
+  ShieldCheck,
+  TestTube,
+  HelpCircle,
+  Trash2,
+} from "lucide-react";
 import ConnectionTestModal from "./ConnectionTestModal";
 import TroubleshootingGuide from "./TroubleshootingGuide";
 
@@ -13,6 +22,7 @@ interface JiraConfigModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (config: JiraConfig) => void;
+  onClear?: () => void;
   initialConfig?: Partial<JiraConfig>;
 }
 
@@ -20,6 +30,7 @@ export default function JiraConfigModal({
   isOpen,
   onClose,
   onSave,
+  onClear,
   initialConfig,
 }: JiraConfigModalProps) {
   const [config, setConfig] = useState<JiraConfig>({
@@ -102,21 +113,35 @@ export default function JiraConfigModal({
     }
   };
 
+  const handleClear = () => {
+    if (window.confirm("確定要清除本機瀏覽器中儲存的 Jira 連線設定嗎？")) {
+      if (onClear) {
+        onClear();
+      }
+      setConfig({ baseUrl: "", email: "", apiToken: "" });
+      onClose();
+    }
+  };
+
   if (!isOpen) return null;
 
   const currentNormalized = getNormalizedConfig(config);
+  const hasSavedConfig = Boolean(initialConfig?.baseUrl || initialConfig?.email);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[92vh] overflow-y-auto">
         {/* 標題列 */}
         <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-semibold text-gray-900">Jira API 設定</h2>
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900">Jira API 設定</h2>
+            <p className="text-xs text-gray-500 mt-0.5">配置您的 Jira 連線以探索卡片關聯與關鍵路徑</p>
+          </div>
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => setShowTroubleshooting(!showTroubleshooting)}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="text-gray-400 hover:text-gray-600 transition-colors p-1"
               title="顯示故障排除指南"
             >
               <HelpCircle size={20} />
@@ -124,37 +149,43 @@ export default function JiraConfigModal({
             <button
               type="button"
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="text-gray-400 hover:text-gray-600 transition-colors p-1"
             >
               <X size={24} />
             </button>
           </div>
         </div>
 
-        {/* 說明區域 */}
-        <div className="p-6 bg-blue-50 border-b">
+        {/* 資安隱私承諾保證 */}
+        <div className="p-5 bg-gradient-to-b from-emerald-50 to-teal-50/40 border-b border-emerald-100">
           <div className="flex items-start gap-3">
-            <AlertCircle className="text-blue-600 mt-0.5" size={20} />
-            <div className="text-sm text-blue-800">
-              <p className="font-medium mb-2">如何取得 Jira API Token：</p>
-              <ol className="list-decimal list-inside space-y-1 text-xs">
-                <li>登入你的 Atlassian 帳戶</li>
-                <li>前往 Account Settings → Security</li>
-                <li>點擊 &quot;Create and manage API tokens&quot;</li>
-                <li>建立新的 API Token 並複製</li>
-              </ol>
-              <a
-                href="https://id.atlassian.com/manage-profile/security/api-tokens"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 mt-2 text-blue-600 hover:text-blue-800 underline"
-              >
-                前往建立 API Token <ExternalLink size={12} />
-              </a>
-
-              <div className="mt-3 p-2 bg-blue-100 rounded text-xs text-blue-900">
-                <p className="font-medium">✅ CORS 問題已解決</p>
-                <p>此應用程式使用邊緣無伺服器代理（Edge Proxy）來避免瀏覽器的 CORS 限制，你可以安全使用 Jira API。</p>
+            <div className="p-2 bg-emerald-100 text-emerald-700 rounded-lg shrink-0 mt-0.5">
+              <ShieldCheck size={20} />
+            </div>
+            <div className="text-xs text-emerald-950 space-y-1.5 leading-relaxed">
+              <p className="font-semibold text-emerald-900 text-sm">
+                🛡️ 零信任隱私與安全保證 (Zero-Trust BYOC)
+              </p>
+              <ul className="list-disc list-inside space-y-1 text-emerald-800">
+                <li>
+                  <strong className="text-emerald-950">純本機存儲</strong>：您的網址、Email 與 Token 僅保存在目前瀏覽器的 <code className="bg-emerald-100/70 px-1 py-0.2 rounded font-mono">localStorage</code>，不進任何資料庫或伺服器。
+                </li>
+                <li>
+                  <strong className="text-emerald-950">嚴格唯讀 (Read-Only)</strong>：本工具僅讀取卡片關聯拓撲，絕無建立、編輯或刪除卡片的權限。
+                </li>
+                <li>
+                  <strong className="text-emerald-950">無狀態加密中繼</strong>：透過邊緣無狀態代理消除瀏覽器 CORS 限制，記憶體即發即丟，<span className="underline">絕不留存帳密 Log</span>。
+                </li>
+              </ul>
+              <div className="pt-1">
+                <a
+                  href="https://id.atlassian.com/manage-profile/security/api-tokens"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-emerald-700 hover:text-emerald-900 underline font-medium"
+                >
+                  前往 Atlassian 官方建立 API Token <ExternalLink size={12} />
+                </a>
               </div>
             </div>
           </div>
@@ -194,7 +225,12 @@ export default function JiraConfigModal({
 
           {/* API Token */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">API Token *</label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-sm font-medium text-gray-700">API Token *</label>
+              <span className="text-[11px] text-emerald-700 flex items-center gap-1 font-medium bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                <ShieldCheck size={12} /> 僅保存在本機瀏覽器
+              </span>
+            </div>
             <div className="relative">
               <input
                 type={showToken ? "text" : "password"}
@@ -216,34 +252,49 @@ export default function JiraConfigModal({
             {errors.apiToken && <p className="mt-1 text-sm text-red-600">{errors.apiToken}</p>}
           </div>
 
-          {/* 按鈕 */}
-          <div className="flex gap-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              取消
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                if (validateConfig()) {
-                  setIsTestModalOpen(true);
-                }
-              }}
-              disabled={!config.baseUrl || !config.email || !config.apiToken}
-              className="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-            >
-              <TestTube size={16} />
-              測試連線
-            </button>
-            <button
-              type="submit"
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-            >
-              儲存設定
-            </button>
+          {/* 按鈕列 */}
+          <div className="flex items-center justify-between gap-3 pt-4 border-t">
+            {hasSavedConfig ? (
+              <button
+                type="button"
+                onClick={handleClear}
+                className="px-3 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg text-sm transition-colors flex items-center gap-1.5"
+                title="清除瀏覽器中儲存的 Jira 設定"
+              >
+                <Trash2 size={16} />
+                清除憑證
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm"
+              >
+                取消
+              </button>
+            )}
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  if (validateConfig()) {
+                    setIsTestModalOpen(true);
+                  }
+                }}
+                disabled={!config.baseUrl || !config.email || !config.apiToken}
+                className="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5 text-sm font-medium"
+              >
+                <TestTube size={16} />
+                測試連線
+              </button>
+              <button
+                type="submit"
+                className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm shadow-sm"
+              >
+                儲存設定
+              </button>
+            </div>
           </div>
 
           {/* 故障排除指南 */}
